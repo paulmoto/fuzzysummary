@@ -5,8 +5,9 @@ require(NLP)
 require(stringr)
 require(openNLP)
 require(openNLPmodels.en)
-require(lsa)
-require(igraph)
+
+
+summarize<-function(title,text,n){
 
 text<-gsub("\n","\n\n",text)
 paranot <-
@@ -72,7 +73,7 @@ sent_words[[i]]<- MC_tokenizer(corpus[[i]])[!MC_tokenizer(corpus[[i]])==""]
 dict<-TermDocumentMatrix(VCorpus(VectorSource(sent_words)), control = list())
 
 #Title words Feature
-title<-"New Orleans Saints' Will Smith plans to be back as long as the Saints want him"
+
 twords<-stripWhitespace(title)
 twords<-tolower(unlist(strsplit(title," ")))
 twords<-twords[!twords %in% stopwords('english')]
@@ -162,7 +163,7 @@ for(i in 1:nrow(features)){
 summary<-data.frame(origsent,sent_scores)
 summary<-summary[order(-sent_scores),]
 
-sumstat<-function(n){
+
   return(cat(as.character(summary[1:n,1][order(row.names(summary))][!is.na(summary[1:n,1][order(row.names(summary))])])))
 }
 
