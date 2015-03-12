@@ -87,26 +87,51 @@ wordcount<- function(x,y){
 
 #frequency of words in document
 wordfreq<-vector()
+wordoccur<-vector() #sentences containing each word
+wordscore<-vector()
 for(i in 1:nrow(dict)){
   wordfreq[i]<-sum(dict[i,])
+  wordoccur[i]<-sum(dict[i,]>0)
+  wordscore[i]<-wordfreq[i]*log((length(origsent))/wordoccur[i])
 }
 wordfreq<-data.frame(dict[[6]]$Terms,wordfreq)
 thematic<-wordfreq[order(-wordfreq[,2])[1:5],1]
 
-sim<-matrix(NA,length(corpus),length(corpus))
-maxes<-vector()
+
+
+
+
+#sim<-matrix(NA,length(corpus),length(corpus))
+#maxes<-vector()
 #token matching
-image<-inspect(dict)
+
+#for(i in 1:nrow(sim)){
+#  for(j in 1:ncol(sim)){
+#    sim[i,j]<-sum(pmin(as.vector(dict[,i]),as.vector(dict[,j])))                        
+#  }}
+#diag(sim)<-0
+#for(i in 1:nrow(sim)){
+#  if(max(sim[,i])>0){
+#  sim[,i]<-sim[,i]/max(sim[,i])
+#  }
+#}
+sentencevectors<-matrix(NA,nrow(dict),length(origsent))
+for(i in 1:ncol(sentencevectors)){
+  sentencevectors[,i]<-as.vector(dict[,i]*wordscore)
+}
+
+sim<-matrix(NA,length(origsent),length(origsent))
 for(i in 1:nrow(sim)){
   for(j in 1:ncol(sim)){
-    sim[i,j]<-sum(pmin(image[,i],image[,j]))                        
-  }}
-diag(sim)<-0
-for(i in 1:nrow(sim)){
-  if(max(sim[,i])>0){
-  sim[,i]<-sim[,i]/max(sim[,i])
+    if(!i==j){
+     sim[i,j]<- sum(sentencevectors[,i]*sentencevectors[,j])/(sqrt(sum(sentencevectors[,i]^2))*sqrt(sum(sentencevectors[,j]^2)))
+    }
   }
 }
+diag(sim)<-0
+
+
+
 
 features<-matrix(0,length(corpus),8)
 for(i in 1:nrow(features)){
@@ -116,17 +141,30 @@ for(i in 1:nrow(features)){
   if(length(sent_words[[i]])>0){features[i,4]<- sum(!is.na(as.numeric(strsplit(origsent[[i]]," ")[[1]])))/length(sent_words[[i]])}#numerical data
   features[i,5]<- sum(unlist(lapply(thematic,wordcount,y=sent_words[[i]])))#thematic words top 5 words
   features[i,6]<- sum(sim[,i]) #similarity
-  features[i,7]<-sum(image[,i]*wordfreq[,2]) #word frequency
-  features[i,8]<-str_count(origsent[[i]],"[A-Z][a-z]") #Proper nouns?
+  features[i,7]<-sum(dict[,i]*wordscore) #word frequency
+  if(length(sent_words[[i]])>0) {features[i,8]<-str_count(origsent[[i]],"[A-Z][a-z]")/length(sent_words[[i]])} #Proper nouns?
 }
+
 #normalizing features
 features[1:length(parapos),3]<-parapos
-features[length(parapos):nrow(features),3]<-1
+features[length(parapos):nrow(features),3]<-0
 features[,3]<-features[,3]/max(features[,3])
 features[,2]<-features[,2]/max(features[,2])
 features[,5]<-features[,5]/max(features[,5])
+features[,6]<-features[,6]/max(features[,6])
 features[,7]<-features[,7]/max(features[,7])
 
+featureweights<-c(1,1,1,1,1,1,1,1)
+sent_scores<-vector()
+for(i in 1:nrow(features)){
+  sent_scores[i]<-sum(features[i,]*featureweights)
+}
+summary<-data.frame(origsent,sent_scores)
+summary<-summary[order(-sent_scores),]
+
+sumstat<-function(n){
+  return(cat(as.character(summary[1:n,1][order(row.names(summary))][!is.na(summary[1:n,1][order(row.names(summary))])])))
+}
 
 
 #SVD<-lsa(dict)$dk
