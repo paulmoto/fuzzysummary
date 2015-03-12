@@ -1,0 +1,22 @@
+{
+    "contents" : "",
+    "created" : 1426176036341.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "A786DEF",
+    "lastKnownWriteTime" : 7741240723082584096,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "caption" : "parapos",
+        "contentUrl" : "content?title=parapos&file=619d51497aa648598e006cb3124e0f11.htm",
+        "displayedObservations" : 50,
+        "displayedVariables" : 1,
+        "totalObservations" : 50,
+        "variables" : 1
+    },
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}

@@ -1,0 +1,16 @@
+{
+    "contents" : "#' Summarize an article\n#' \n#' @param text character string to be summarized\n#' @param n number of sentences in summary\n#' @return two summaries of the text\n#' @export\n#'\n#'\n#'\nrequire(openNLP)\nrequire(NLP)\nrequire(stringr)\nrequire(igraph)\n\ngetsummary<-function(text,arg2)\n{\n  \n  text<-str_replace_all(text,\"[\\n]\",\" \")\n  sent_annotate<-Maxent_Sent_Token_Annotator()\n  sent<-annotate(text,sent_annotate)\n  origsent<-vector()\n  for(i in 1:length(sent)){\n    origsent[i]<-substr(text,sent$start[i],sent$end[i])\n  }\n  \n  sentences<-str_replace_all(tolower(origsent),\"[[:punct:]]\",\"\")\n  origsent<-origsent[duplicated(sentences)==F]\n  sentences<-sentences[duplicated(sentences)==F]\n  sword<- strsplit(sentences,\" \")\n  words<- unique(unlist(sword))\n  words<-words[!words==\"\"]\n  \n  dict<-data.frame(words)\n  for (i in 1:length(sword)){\n    for(j in 1:nrow(dict)){\n      dict[j,i+1]<-length(grep(sprintf(\"^%s$\",dict[j,1]),sword[[i]]))\n    }\n  }\n  \n  adj<-matrix(NA,length(sentences),length(sentences))\n  \n  #Jaccard Similarity: norm(intersect (dict[,i],dict[,j])) / norm(union (dict[,i],dict[,j]))\n  for(i in 1:nrow(adj)){\n    for(j in 1:ncol(adj)){int<-vector()\n                          uni<-vector()\n                          for (n in 1:nrow(dict)) {\n                            int[n]<- min(dict[n,i+1],dict[n,j+1])\n                            uni[n]<- max(dict[n,i+1],dict[n,j+1])\n                          }\n                          adj[i,j]<-sqrt(sum(int^2))/sqrt(sum(uni^2))}\n  }\n  diag(adj)<-1\n  \n  \n  \n  \n  g<-graph.adjacency(adj,weighted=T,mode='undirected')\n  pgr<-page.rank(g)$vector\n  summ<-data.frame(origsent,pgr)[order(-pgr),]\n  #n sentence summary\n\n  summary<-as.character(summ[1:arg2,1][order(row.names(summ))])\n  summary<-summary[!is.na(summary)]\n    \n  return(cat(\"Summary 1: \",summary))\n}",
+    "created" : 1426089200538.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1528453144",
+    "id" : "A94748F2",
+    "lastKnownWriteTime" : 1426086713,
+    "path" : "~/GitHub/getsummary/R/getsummary.R",
+    "project_path" : null,
+    "properties" : {
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}
