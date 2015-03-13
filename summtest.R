@@ -59,11 +59,11 @@ for(i in 1:length(sent_ann)){
   origsent[i]<-substr(text,sent_ann$start[i],sent_ann$end[i])
 }
 
-corpus<-origsent
-corpus<-stripWhitespace(corpus)
-corpus<-tolower(corpus)
-corpus<-corpus[!corpus %in% stopwords('english')]
-corpus<-stemDocument(corpus)
+corpus<-VCorpus(VectorSource(origsent))
+corpus<-tm_map(corpus, stripWhitespace)
+corpus<-tm_map(corpus,content_transformer(tolower))
+corpus<-tm_map(corpus,removeWords,stopwords("english"))
+corpus<-tm_map(corpus,stemDocument)
 
 sent_words<-list()
 for(i in 1:length(corpus)){
@@ -164,7 +164,7 @@ summary<-data.frame(origsent,sent_scores)
 summary<-summary[order(-sent_scores),]
 
 
-  return(cat(gsub("\n","",as.character(summary[1:n,1][order(row.names(summary))][!is.na(summary[1:n,1][order(row.names(summary))])]))))
+  return(cat(as.character(summary[1:n,1][order(row.names(summary))][!is.na(summary[1:n,1][order(row.names(summary))])])))
 }
 
 
